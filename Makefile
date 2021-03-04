@@ -1,8 +1,12 @@
 .PHONY: clean help
 
-VERSION     := 0.0.1
-PROJECTNAME := kafka-admin-tool
-SOURCES     := $(wildcard *.go)
+VERSION      := 0.0.1
+PROJECTNAME  := kafka-admin-tool
+SOURCES      := $(wildcard *.go)
+
+# Packages to build before go get runs
+PACKAGE_DIRS = adminutils actions
+
 
 # Use linker flags to provide version/build settings
 LDFLAGS=-ldflags "-X=main.Version=$(VERSION)"
@@ -27,25 +31,27 @@ format: go-format
 clear:
 	clear
 
+
 go-compile: go-get go-build
 
-go-build:
-	@echo "--> Building linux binary..."
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/$(PROJECTNAME)-linux-amd64 $(SOURCES)
-	@echo "--> Building macos binary..."
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/$(PROJECTNAME)-darwin-amd64 $(SOURCES)
 
 go-get:
-	@echo "--> Retrieving all dependencies..."
+	@echo "--> Retrieving all dependencies"
 	go get
 
+go-build:
+	@echo "--> Building linux binary"
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/$(PROJECTNAME)-linux-amd64 $(SOURCES)
+	@echo "--> Building macos binary"
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/$(PROJECTNAME)-darwin-amd64 $(SOURCES)
+
 go-clean:
-	@echo "--> Cleaning build cache..."
+	@echo "--> Cleaning build cache"
 	rm -rf bin/*
 	go clean
 
 go-format:
-	@echo "--> Formatting source files..."
+	@echo "--> Formatting source files $(PACKAGES)"
 	go fmt $(SOURCES)
 
 help: Makefile
