@@ -2,15 +2,14 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
-	"regexp"
 	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/spf13/cobra"
 
-	"github.com/cadrake/kafka-admin-tool/utils"
+	"cadrake/kafka-admin-tool/utils"
 )
 
 var (
@@ -23,22 +22,17 @@ var (
 		Short: "Reassign partitions in a cluster",
 		Long: "Reassign enables moving pertitions between brokers using a set of commands and can output reassignment jsons for passing to the kafka cli commands",
 		Args: cobra.NoArgs,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			client = utils.NewAdminClient(brokerList, caCertFile)
-		},
-		PostRun: func(cmd *cobra.Command, args []string) {
-			client.Close()
-		},
-		Run: func(cmd *cobra.Command, args []string) {
-			// Build regular expression
-			var topicRe *regexp.Regexp
-			if len(topicFilter) > 0 {
-				var err error
-				topicRe, err = regexp.Compile(topicFilter)
-				utils.LogAndExitIfError(logger, "Failed to compile topic filter regular expression", err)
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if fromBroker == -1 {
+				return fmt.Errorf("Missing required flag --from")
 			}
-			
-			reassignBrokerPartitions(logger, topicRe)
+			if fromBroker == toBroker {
+				return fmt.Errorf("From broker (%d) is the same as to broker (%d)", fromBroker, toBroker)
+			}
+			return nil
+		},
+		Run: func(cmd *cobra.Command, args []string) {			
+			reassignBrokerPartitions()
 		},
 	}
 )
@@ -58,15 +52,14 @@ type KafkaReassignments struct {
 func init() {
 	reassignCmd.Flags().IntVarP(&fromBroker, "from", "f", -1, "Source broker id to reassign from")
 	reassignCmd.Flags().IntVarP(&toBroker, "to", "t", -1, "Destination broker id to reassign to")
-	reassignCmd.Flags().StringVarP(&outputJson, "output-json", "o", "Json to output reassignments to, can be fed to kafka-reassign-partitions")
-	// TODO: Flag validation
+	reassignCmd.Flags().StringVarP(&outputJson, "output-json", "o", "", "Json to output reassignments to, can be fed to kafka-reassign-partitions")
 	// TODO: If --to isnt set, rebalance --from broker across all remaining brokers
-	// TODO: Save reassignment response config to backup original setup for undoing changes
+	// TODO: Print reassignment response config to backup original setup for undoing changes
 	
 	rootCmd.AddCommand(reassignCmd)
 }
 
-func reassignBrokerPartitions(topicRe *regexp.Regexp) {
+func reassignBrokerPartitions() {
 	timeout, _ := time.ParseDuration("10s")
 	reassignReq := sarama.AlterPartitionReassignmentsRequest{
 		TimeoutMs: int32(timeout.Milliseconds()),
@@ -92,7 +85,7 @@ func reassignBrokerPartitions(topicRe *regexp.Regexp) {
 		}
 	}
 
-	getPartitionReassignments(topicRe, newBlock)
+	getPartitionReassignments(newBlock)
 
 	if len(outputJson) > 0 {
 		bytes, err := json.MarshalIndent(reassignments, "", "  ")
@@ -102,14 +95,17 @@ func reassignBrokerPartitions(topicRe *regexp.Regexp) {
 	}
 
 	if !isDryRun {
+		logger.Printf("Sending reassignments to cluster")
 		client.ReassignPartitions(reassignReq)
 
 		logger.Printf("Reassignment request successful, waiting for completion")
 		TrackReassignmentProgress(reassignments)
+	} else {
+		logger.Printf("Run again with the --execute flag to apply the changes")
 	}
 }
 
-func getPartitionReassignments(topicRe *regexp.Regexp, newBlock func(string, int32, []int32)) {
+func getPartitionReassignments(newBlock func(string, int32, []int32)) {
     if toBroker != -1 {
         logger.Printf("Expected reassignments after replacing broker %d with broker %d:", fromBroker, toBroker)
     } else {
@@ -119,7 +115,7 @@ func getPartitionReassignments(topicRe *regexp.Regexp, newBlock func(string, int
 	metadata := client.GetMetadata()
 
 	for _, topicMeta := range metadata.Topics {
-		if topicRe != nil && !topicRe.MatchString(topicMeta.Name) {
+		if !topicRe.MatchString(topicMeta.Name) {
 			continue
 		}
 

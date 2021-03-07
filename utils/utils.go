@@ -3,6 +3,8 @@ package utils
 import (
     "log"
     "os"
+
+	"github.com/Shopify/sarama"
 )
 
 type KafkaResponseError struct {

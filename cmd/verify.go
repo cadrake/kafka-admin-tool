@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"time"
 
+	"github.com/Shopify/sarama"
 	"github.com/spf13/cobra"
+
+	"cadrake/kafka-admin-tool/utils"
 )
 
 var (
@@ -17,28 +19,22 @@ var (
 		Short: "Track progress of a reassignment",
 		Long: "Takes an input file and checks on the clusters progress reassigning the partitions",
 		Args: cobra.NoArgs,
-		PreRun: func(cmd *cobra.Command, args []string) {
-			client = utils.NewAdminClient(brokerList, caCertFile)
-		},
-		PostRun: func(cmd *cobra.Command, args []string) {
-			client.Close()
-		},
 		Run: func(cmd *cobra.Command, args []string) {
 			jsonFile, err := os.Open(inputJsonFile)
 			utils.LogAndExitIfError(logger, "Failed to read reassignment json file", err)
 			defer jsonFile.Close()
 	
-			var reassignments actions.KafkaReassignments
+			var reassignments KafkaReassignments
 			err = json.NewDecoder(jsonFile).Decode(&reassignments)
 			utils.LogAndExitIfError(logger, "Failed to decode json reassignment file", err)
 	
-			TrackReassignmentProgress(logger, reassignments)
+			TrackReassignmentProgress(reassignments)
 		},
 	}
 )
 
 func init() {
-	verifyCmd.Flags().StringVarP(&inputJsonFile, "input-json", "i", nil, "Reassignment json to read from")
+	verifyCmd.Flags().StringVarP(&inputJsonFile, "input-json", "i", "", "Reassignment json to read from")
 	
 	rootCmd.AddCommand(verifyCmd)
 }

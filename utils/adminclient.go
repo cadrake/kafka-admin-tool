@@ -16,19 +16,19 @@ type AdminClient struct {
 	logger *log.Logger
 }
 
-func NewAdminClient(brokerlist string, caCertFile string) *AdminClient {
+func NewAdminClient(brokerList string, caCertFile string) *AdminClient {
 	logger := log.New(os.Stdout, "[kafka-admin-client]", log.LstdFlags)
 	client, err := sarama.NewClient(strings.Split(brokerList, ","), getConfig(logger, caCertFile))
 	LogAndExitIfError(logger, "Failed to initialize kafka client", err)
 	
 	return &AdminClient{
 		client: client,
-		logger: logger
+		logger: logger,
 	}
 }
 
 func (c *AdminClient) GetMetadata() *sarama.MetadataResponse {
-	controller := getController()
+	controller := c.getController()
 
 	request := sarama.MetadataRequest{Topics: []string{}}
 	response, err := controller.GetMetadata(&request)
@@ -37,38 +37,43 @@ func (c *AdminClient) GetMetadata() *sarama.MetadataResponse {
 	return response
 }
 
-func (c *AdminClient) ReassignPartitions(reassignReq sarama.AlterPartitionReassignmentsRequest) {
-	controller := getController()
+func (c *AdminClient) ReassignPartitions(reassignReq sarama.AlterPartitionReassignmentsRequest) *sarama.AlterPartitionReassignmentsResponse {
+	controller := c.getController()
 	
 	reassignResp, err := controller.AlterPartitionReassignments(&reassignReq)
 	LogAndExitIfError(c.logger, "Failed to reassign partitions", err)
 	LogAndExitIfKafkaError(c.logger, "Reassignment request failed", *reassignResp)
+
+	return reassignResp
 }
 
-func (c *AdminClient) ListPartitionReassignments(reassignListReq sarama.ListPartitionReassignmentsRequest) sarama.ListPartitionReassignmentsResponse {
-	controller := getController()
+func (c *AdminClient) ListPartitionReassignments(reassignListReq sarama.ListPartitionReassignmentsRequest) *sarama.ListPartitionReassignmentsResponse {
+	controller := c.getController()
 
 	reassignListResp, err := controller.ListPartitionReassignments(&reassignListReq)
-	utils.LogAndExitIfError(logger, "Failed to retrieve active partition reassignments", err)
-	utils.LogAndExitIfKafkaError(logger, "List Reassignments failed", reassignListResp)
+	LogAndExitIfError(c.logger, "Failed to retrieve active partition reassignments", err)
+	LogAndExitIfKafkaError(c.logger, "List Reassignments failed", reassignListResp)
 
 	return reassignListResp
 }
 
-func (c *AdminClient) AlterConfigs(alterReq sarama.AlterConfigsRequest) {
-	controller := getController()
+func (c *AdminClient) AlterConfigs(alterReq sarama.AlterConfigsRequest) *sarama.AlterConfigsResponse{
+	controller := c.getController()
 
 	response, err := controller.AlterConfigs(&alterReq)
-	utils.LogAndExitIfError(c.logger, "Failed to alter topic configuration", err)
+	LogAndExitIfError(c.logger, "Failed to alter topic configuration", err)
+
+	return response
 }
 
 func (c *AdminClient) Close() {
-	client.Close()
+	c.client.Close()
 }
 
-func getController() *sarama.Broker {
+func (c *AdminClient) getController() *sarama.Broker {
 	controller, err := c.client.Controller()
 	LogAndExitIfError(c.logger, "Failed to find cluster controller", err)
+	return controller
 }
 
 // TODO: Set version based on admin action
@@ -76,7 +81,7 @@ func getConfig(logger *log.Logger, caCertFile string) *sarama.Config {
 	config := sarama.NewConfig()
 	config.Version = sarama.V2_5_0_0 // AlterPartitionReassignmentsRequest: V2_4_0_0, AlterConfigsRequest: V1_0_0_0
 
-	if len(caCert) > 0 {
+	if len(caCertFile) > 0 {
 		tlsCfg, err := initTlsConfig(caCertFile)
 		LogAndExitIfError(logger, "Failed to initialize TLS config", err)
 

@@ -41,9 +41,9 @@ go-get:
 
 go-build:
 	@echo "--> Building linux binary"
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/$(PROJECTNAME)-linux-amd64 $(SOURCES)
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/linux-amd64/$(PROJECTNAME) $(SOURCES)
 	@echo "--> Building macos binary"
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/$(PROJECTNAME)-darwin-amd64 $(SOURCES)
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/darwin-amd64/$(PROJECTNAME) $(SOURCES)
 
 go-clean:
 	@echo "--> Cleaning build cache"

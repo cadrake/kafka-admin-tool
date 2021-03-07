@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"regexp"
+	"fmt"
+	"strconv"
 
 	"github.com/Shopify/sarama"
 	"github.com/spf13/cobra"
@@ -15,17 +16,15 @@ var (
 		Use: "alter",
 		Short: "Commands for altering the configuration of topics",
 		Long: "The alter command provides a way to change a topic partitions or other configuration settings",
-		Args: cobra.NoArgs(),
-		Run: func(cmd *cobra.Command, args []string) {
-			// Build regular expression
-			var topicRe *regexp.Regexp
-			if len(topicFilter) > 0 {
-				var err error
-				topicRe, err = regexp.Compile(topicFilter)
-				utils.LogAndExitIfError(logger, "Failed to compile topic filter regular expression", err)
+		Args: cobra.NoArgs,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if newReplicationFactor == -1 && deltaReplicationFactor == 0 {
+				return fmt.Errorf("One of --new-rf or --delta-rf must be provided")
 			}
-
-			alterTopics(topicRe)
+			return nil
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			client.AlterConfigs(buildTopicAlterConfig())
 		},
 	}
 )
@@ -37,11 +36,7 @@ func init() {
 	rootCmd.AddCommand(alterCmd)
 }
 
-func alterTopics(topicRe *regexp.Regexp) {
-	client.AlterConfigs(buildTopicAlterConfig(topicRe))
-}
-	
-func buildTopicAlterConfig(topicRe *regexp.Regexp) sarama.AlterConfigsRequest {
+func buildTopicAlterConfig() sarama.AlterConfigsRequest {
 	metadata := client.GetMetadata()
 		
 	request := sarama.AlterConfigsRequest{
@@ -54,11 +49,12 @@ func buildTopicAlterConfig(topicRe *regexp.Regexp) sarama.AlterConfigsRequest {
 			continue
 		}
 
+		// TODO: This needs to also use partition reassignment
 		var newFactor string
 		if deltaReplicationFactor != 0 {
 			// TODO: Get existing RF and apply delta
 		} else {
-			newFactor = newReplicationFactor
+			newFactor = strconv.Itoa(newReplicationFactor)
 		}
 
 		entries := make(map[string]*string)
