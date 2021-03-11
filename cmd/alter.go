@@ -40,7 +40,7 @@ func buildTopicAlterConfig() sarama.AlterConfigsRequest {
     metadata := client.GetMetadata()
         
     request := sarama.AlterConfigsRequest{
-        ValidateOnly: isDryRun,
+        ValidateOnly: !doExecute,
         Resources:    []*sarama.AlterConfigsResource{},
     }
 

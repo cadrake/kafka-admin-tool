@@ -15,7 +15,7 @@ var (
     brokerList  string
     topicFilter string
     caCertFile  string
-    isDryRun    bool
+    doExecute    bool
     topicRe     *regexp.Regexp
     client      *utils.AdminClient
     logger      *log.Logger
@@ -57,5 +57,5 @@ func init() {
     rootCmd.PersistentFlags().StringVar(&brokerList, "broker-list", "localhost:9092", "Kafka brokers to connect to")
     rootCmd.PersistentFlags().StringVar(&topicFilter, "topic-filter", "", "Regular expression used to match topics to reassign (optional)")
     rootCmd.PersistentFlags().StringVar(&caCertFile, "cacert-file", "", "Location of ca certificate for ssl communication with cluster")
-    rootCmd.PersistentFlags().BoolVar(&isDryRun, "execute", true, "True to apply changes to the cluster")
+    rootCmd.PersistentFlags().BoolVar(&doExecute, "execute", false, "True to apply changes to the cluster")
 }

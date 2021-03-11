@@ -79,7 +79,7 @@ func reassignBrokerPartitions() {
 
         reassignments.Partitions = append(reassignments.Partitions, assignment)
 
-        if !isDryRun {
+        if doExecute {
             reassignReq.AddBlock(topic, partitionId, replicas)
         }
     }
@@ -91,9 +91,10 @@ func reassignBrokerPartitions() {
         utils.LogAndExitIfError(logger, "Failed to marshall reassignment json", err)
         err = ioutil.WriteFile(outputJson, bytes, 0666)
         utils.LogAndExitIfError(logger, "Failed to write json to disk", err)
+        logger.Printf("Reassignments saved to '%s'", outputJson)
     }
 
-    if !isDryRun {
+    if doExecute {
         logger.Printf("Sending reassignments to cluster")
         client.ReassignPartitions(reassignReq)
 
