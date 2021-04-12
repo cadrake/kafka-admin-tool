@@ -1,4 +1,4 @@
-.PHONY: clean help
+.PHONY: all install clean format
 
 VERSION      := 0.0.1
 PROJECTNAME  := kafka-admin-tool
@@ -40,10 +40,8 @@ go-get:
 	go get
 
 go-build:
-	@echo "--> Building linux binary"
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o bin/linux-amd64/$(PROJECTNAME) $(SOURCES)
-	@echo "--> Building macos binary"
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o bin/darwin-amd64/$(PROJECTNAME) $(SOURCES)
+	@echo "--> Building binary"
+	go build $(LDFLAGS) -o bin/$(PROJECTNAME) $(SOURCES)
 
 go-clean:
 	@echo "--> Cleaning build cache"
@@ -56,7 +54,7 @@ go-format:
 
 help: Makefile
 	@echo
-	@echo " Choose a command to run in "$(PROJECTNAME)":"
+	@echo " Choose a command to run in $(PROJECTNAME):"
 	@echo
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo

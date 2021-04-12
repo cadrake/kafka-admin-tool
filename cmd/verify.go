@@ -6,6 +6,7 @@ import (
     "time"
 
     "github.com/Shopify/sarama"
+    log "github.com/sirupsen/logrus"
     "github.com/spf13/cobra"
 
     "cadrake/kafka-admin-tool/utils"
@@ -13,7 +14,7 @@ import (
 
 var (
     inputJsonFile string
-    
+
     verifyCmd = &cobra.Command{
         Use: "verify",
         Short: "Track progress of a reassignment",
@@ -21,31 +22,31 @@ var (
         Args: cobra.NoArgs,
         Run: func(cmd *cobra.Command, args []string) {
             jsonFile, err := os.Open(inputJsonFile)
-            utils.LogAndExitIfError(logger, "Failed to read reassignment json file", err)
+            utils.LogAndExitIfError("Failed to read reassignment json file", err)
             defer jsonFile.Close()
-    
-            var reassignments KafkaReassignments
+
+            var reassignments utils.KafkaReassignments
             err = json.NewDecoder(jsonFile).Decode(&reassignments)
-            utils.LogAndExitIfError(logger, "Failed to decode json reassignment file", err)
-    
-            TrackReassignmentProgress(reassignments)
+            utils.LogAndExitIfError("Failed to decode json reassignment file", err)
+
+            TrackReassignmentProgress(&reassignments)
         },
     }
 )
 
 func init() {
     verifyCmd.Flags().StringVarP(&inputJsonFile, "input-json", "i", "", "Reassignment json to read from")
-    
+
     rootCmd.AddCommand(verifyCmd)
 }
 
-func TrackReassignmentProgress(reassignments KafkaReassignments) {
+func TrackReassignmentProgress(reassignments *utils.KafkaReassignments) {
     complete := false
     for !complete {
         timeout, _ := time.ParseDuration("10s")
         reassignListReq := sarama.ListPartitionReassignmentsRequest{
             TimeoutMs: int32(timeout.Milliseconds()),
-            Version:   int16(0), // TODO: Confluent needs 0, what does regular kafka need?
+            Version:   int16(0),
         }
 
         for _, partitionAssignment := range reassignments.Partitions {
@@ -55,16 +56,16 @@ func TrackReassignmentProgress(reassignments KafkaReassignments) {
         reassignListResp := client.ListPartitionReassignments(reassignListReq)
 
         if len(reassignListResp.TopicStatus) > 0 {
-            logger.Printf("  Remaining:")
+            log.Infof("  Remaining:")
             for topic, idMap := range reassignListResp.TopicStatus {
                 for id, status := range idMap {
-                    logger.Printf("    %s-%d: adding %v, removing %v", topic, id, status.AddingReplicas, status.RemovingReplicas)
+                    log.Infof("    %s-%d: adding %v, removing %v", topic, id, status.AddingReplicas, status.RemovingReplicas)
                 }
             }
 
             time.Sleep(1 * time.Second)
         } else {
-            logger.Printf("Reassignment complete")
+            log.Infof("Reassignment complete")
             complete = true
         }
     }
