@@ -46,8 +46,6 @@ func alterTopicReplicationFactor() {
     }
 
     reassignReq := buildTopicAlterConfig(reassignments)
-    // TODO: Do I need to set the topic's replication factor after rebalance?
-
     if doExecute {
         log.Infof("Sending reassignments to cluster")
         client.ReassignPartitions(reassignReq)

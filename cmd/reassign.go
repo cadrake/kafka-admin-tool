@@ -95,7 +95,6 @@ func getPartitionReassignments(reassignments *utils.KafkaReassignments) sarama.A
         }
     }
 
-
     if toBroker != -1 {
         log.Infof("Expected reassignments after replacing broker %d with broker %d:", fromBroker, toBroker)
     } else {

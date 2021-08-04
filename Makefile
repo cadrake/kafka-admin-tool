@@ -1,6 +1,6 @@
-.PHONY: all install clean format
+.PHONY: all install clean format clear go-compile go-get go-build go-clean go-format help
 
-VERSION      := 0.0.1
+VERSION      := 0.1.0
 PROJECTNAME  := kafka-admin-tool
 SOURCES      := $(wildcard *.go)
 
