@@ -2,6 +2,16 @@
 
 The Kafka Admin Tool is designed to simplify the task of rebalancing and reassigning topic partitions
 
+## Building
+
+To build the tool run
+
+```
+make
+```
+
+Then copy `./bin/kafka-admin-tool` to a location of your choice
+
 ## `reassign` Command
 
 Takes a broker list and optional topic regex and reassigns partitions, note that the `-f` and `-t`

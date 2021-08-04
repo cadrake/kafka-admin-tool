@@ -31,9 +31,7 @@ format: go-format
 clear:
 	clear
 
-
 go-compile: go-get go-build
-
 
 go-get:
 	@echo "--> Retrieving all dependencies"
