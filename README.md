@@ -11,15 +11,24 @@ options take the broker id (eg id set in the kafka configuration). Unless otherw
 ### Examples
 
 <details><summary>Move all partitions for matching topics away from a given broker:</summary>
-`kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign.* -f 5`
+
+```
+kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign.* -f 5
+```
 </details>
 
 <details><summary>Move all partitions for matching topics from one broker to a new broker:</summary>
-`kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign.* -f 5 -t 1`
+
+```
+kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign.* -f 5 -t 1
+```
 </details>
 
 <details><summary>Move all partitions for matching topics from one broker to a new broker and save the reassignments as a json that can be fed to kafka-reassign-partitions:</summary>
-`kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign.* -f 5 -t 1 -o assignments.json`
+
+```
+kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign.* -f 5 -t 1 -o assignments.json
+```
 </details>
 
 ## `alter` Command
@@ -31,13 +40,22 @@ existing replication factor. Unless otherwise noted, use `--execute` to actually
 ### Examples
 
 <details><summary>Increase the number of replicas for matching topics by 2:</summary>
-`kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --delta-rf 2`
+
+```
+kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --delta-rf 2
+```
 </details>
 
 <details><summary>Decrease the number of replicas for matching topics by 2:</summary>
-`kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --delta-rf -2`
+
+```
+kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --delta-rf -2
+```
 </details>
 
 <details><summary>Set the number of replicas for matching topics to 10:</summary>
-`kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --new-rf 10`
+
+```
+kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --new-rf 10
+```
 </details>
