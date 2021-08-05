@@ -9,7 +9,7 @@ import (
     log "github.com/sirupsen/logrus"
     "github.com/spf13/cobra"
 
-    "cadrake/kafka-admin-tool/utils"
+    "github.com/cadrake/kafka-admin-tool/utils"
 )
 
 var (

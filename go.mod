@@ -1,4 +1,4 @@
-module cadrake/kafka-admin-tool
+module github.com/cadrake/kafka-admin-tool
 
 go 1.15
 

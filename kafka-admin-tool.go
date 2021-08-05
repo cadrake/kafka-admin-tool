@@ -5,7 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"cadrake/kafka-admin-tool/cmd"
+	"github.com/cadrake/kafka-admin-tool/cmd"
 )
 
 func main() {
