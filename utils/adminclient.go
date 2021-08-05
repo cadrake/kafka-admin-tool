@@ -53,15 +53,6 @@ func (c *AdminClient) ListPartitionReassignments(reassignListReq sarama.ListPart
     return reassignListResp
 }
 
-func (c *AdminClient) AlterConfigs(alterReq sarama.AlterConfigsRequest) *sarama.AlterConfigsResponse{
-    controller := c.getController()
-
-    response, err := controller.AlterConfigs(&alterReq)
-    LogAndExitIfError("Failed to alter topic configuration", err)
-
-    return response
-}
-
 func (c *AdminClient) Close() {
     c.client.Close()
 }
@@ -74,7 +65,7 @@ func (c *AdminClient) getController() *sarama.Broker {
 
 func getConfig(caCertFile string) *sarama.Config {
     config := sarama.NewConfig()
-    config.Version = sarama.V2_5_0_0 // AlterPartitionReassignmentsRequest: V2_4_0_0, AlterConfigsRequest: V1_0_0_0
+    config.Version = sarama.V2_4_0_0
 
     if len(caCertFile) > 0 {
         tlsCfg, err := initTlsConfig(caCertFile)
