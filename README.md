@@ -12,7 +12,7 @@ make
 
 Then copy `./bin/kafka-admin-tool` to a location of your choice
 
-## `reassign` Command
+## The `reassign` Command
 
 Takes a broker list and optional topic regex and reassigns partitions, note that the `-f` and `-t`
 options take the broker id (eg id set in the kafka configuration). Unless otherwise noted, use
@@ -41,11 +41,10 @@ kafka-admin-tool reassign --broker-list localhost:9092 --topic-filter .*reassign
 ```
 </details>
 
-## `alter` Command
+## The `alter` Command
 
 Takes a broker list and optional topic regex and either set a new replication factor or adjust the
 existing replication factor. Unless otherwise noted, use `--execute` to actually apply the changes.
-
 
 ### Examples
 
@@ -67,5 +66,19 @@ kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --
 
 ```
 kafka-admin-tool alter --broker-list localhost:9092 --topic-filter .*topic.v1 --new-rf 10
+```
+</details>
+
+## The `verify` Command
+
+Takes a reassignments json file and tracks the live clusters progress moving the partitions
+
+### Examples
+
+<details><summary>Track a reassignment in progress</summary>
+
+```
+
+kafka-admin-tool verify --input-json assignments.json
 ```
 </details>
