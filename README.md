@@ -2,9 +2,16 @@
 
 The Kafka Admin Tool is designed to simplify the task of rebalancing and reassigning topic partitions
 
+## Installing
+
+To install run:
+```
+go get -u github.com/cadrake/kafka-admin-tool
+```
+
 ## Building
 
-To build the tool run
+To build the tool run:
 
 ```
 make
